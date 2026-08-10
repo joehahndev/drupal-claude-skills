@@ -1,0 +1,48 @@
+# <PROJECT NAME>
+
+<One line: what this site is, who it's for.>
+
+Petrichor project: <ID — NAME, or delete this line if untracked>
+
+## Site profile
+
+- **Type:** <public hosted | static (Tome) | private/internal | Drupal CMS 2>
+  — this selects the module baseline in the `drupal-module-baselines` skill.
+- **Core:** Drupal <version> (`composer show drupal/core-recommended` is truth)
+- **Hosting:** <host/platform — if Acquia/Pantheon/Platform.sh, the platform
+  provides caching/CDN/backups; don't duplicate them with modules>
+- **Docroot:** `web/`
+
+## Rules for Claude Code in this repo
+
+- Invoke `drupal-standards` before writing/reviewing code, `drupal-modern-core`
+  before choosing an implementation approach, `drupal-module-baselines` before
+  adding or recommending any module.
+- Modern patterns only in new code: `#[Hook]` classes (no new procedural hooks),
+  attribute plugins (no annotations), constructor injection + `autowire: true`
+  (no `\Drupal::service()` in classes), SDC for reusable UI.
+- Config in code: after any config change, `drush cex` and include the export in
+  the same commit as the code that depends on it.
+- Never edit anything under `web/core/` or `web/modules/contrib/`. Patches go
+  through composer-patches with an upstream drupal.org issue link.
+- Before saying work is done: `vendor/bin/phpcs`, `vendor/bin/phpstan analyse`,
+  and the relevant PHPUnit group. Report the actual output.
+
+## Tooling
+
+Configs at repo root: `phpcs.xml.dist`, `phpstan.neon.dist`, `rector.php`
+(copied from the claude-drupal-config repo's `configs/` folder — local clone
+path is in the global CLAUDE.md Drupal section; adjust paths if the docroot
+isn't `web/`).
+
+```bash
+composer require --dev drupal/coder phpstan/phpstan mglaman/phpstan-drupal \
+  phpstan/phpstan-deprecation-rules palantirnet/drupal-rector phpunit/phpunit
+```
+
+<!-- Or on a full site build: composer require --dev drupal/core-dev -->
+
+## Local environment
+
+- <DDEV / Herd / other — commands to start, URL, drush alias>
+- Run tests: `vendor/bin/phpunit --group <module>`

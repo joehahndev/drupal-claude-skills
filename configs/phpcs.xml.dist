@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="project">
+  <description>Drupal coding standards for custom code in this project.</description>
+
+  <!-- Scan custom code only. Adjust paths to the project's docroot layout. -->
+  <file>web/modules/custom</file>
+  <file>web/themes/custom</file>
+  <file>web/profiles/custom</file>
+  <file>web/sites/default/settings.php</file>
+
+  <!-- Never scan dependencies or build output. -->
+  <exclude-pattern>*/vendor/*</exclude-pattern>
+  <exclude-pattern>*/node_modules/*</exclude-pattern>
+  <exclude-pattern>*/core/*</exclude-pattern>
+  <exclude-pattern>*/contrib/*</exclude-pattern>
+  <exclude-pattern>*/dist/*</exclude-pattern>
+  <exclude-pattern>*.min.js</exclude-pattern>
+  <exclude-pattern>*.min.css</exclude-pattern>
+
+  <!-- Show progress, sniff codes, and colour. -->
+  <arg name="colors"/>
+  <arg name="cache" value=".phpcs-cache"/>
+  <arg value="sp"/>
+  <arg name="extensions"
+       value="php,module,inc,install,test,profile,theme,css,info,txt,md,yml"/>
+
+  <!-- Mechanical formatting and naming. -->
+  <rule ref="Drupal"/>
+
+  <!-- Anti-patterns: t() misuse, missing DI, hardcoded config, \Drupal:: in classes.
+       This is the standard that catches "not written by a Drupal developer". -->
+  <rule ref="DrupalPractice"/>
+
+  <!--
+    Common, defensible relaxations. Delete any you don't need — every exclusion
+    here should be a deliberate choice, not inherited noise.
+  -->
+
+  <!-- Allow long lines in .yml and .md where wrapping hurts readability. -->
+  <rule ref="Drupal.Files.LineLength.TooLong">
+    <exclude-pattern>*.yml</exclude-pattern>
+    <exclude-pattern>*.md</exclude-pattern>
+  </rule>
+
+  <!-- Test classes legitimately have short/unusual method names and fixtures. -->
+  <rule ref="DrupalPractice.Objects.GlobalClass">
+    <exclude-pattern>*/tests/*</exclude-pattern>
+  </rule>
+  <rule ref="DrupalPractice.Objects.GlobalDrupal">
+    <exclude-pattern>*/tests/*</exclude-pattern>
+  </rule>
+</ruleset>

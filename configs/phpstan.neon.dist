@@ -1,0 +1,46 @@
+includes:
+  - vendor/mglaman/phpstan-drupal/extension.neon
+  - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+
+parameters:
+  # Start at 1 on inherited code, raise one notch at a time.
+  # 2 = floor for new custom modules. 6 = well-maintained contrib.
+  level: 2
+
+  paths:
+    - web/modules/custom
+    - web/themes/custom
+    - web/profiles/custom
+
+  excludePaths:
+    analyseAndScan:
+      - */vendor/*
+      - */node_modules/*
+      - */contrib/*
+
+  # Where phpstan-drupal finds the site to bootstrap. Adjust to the docroot.
+  drupal:
+    drupal_root: web
+
+  # Drupal file extensions that contain PHP.
+  fileExtensions:
+    - php
+    - module
+    - install
+    - inc
+    - profile
+    - theme
+    - engine
+
+  # Report deprecated API usage — this is your major-version upgrade checklist.
+  reportUnmatchedIgnoredErrors: false
+
+  ignoreErrors:
+    # Drupal's entity API returns loosely-typed values by design; without this
+    # every ->get('field_x')->value chain is an error below level 6.
+    - '#Call to an undefined method Drupal\\Core\\Entity\\FieldableEntityInterface::#'
+    # Test classes access protected properties on parents in ways phpstan
+    # can't always follow.
+    -
+      message: '#Access to an undefined property#'
+      path: */tests/*
