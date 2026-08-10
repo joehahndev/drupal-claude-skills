@@ -1,10 +1,36 @@
 # claude-drupal-config
 
-Source of truth for Claude Code's Drupal knowledge on this machine.
+Source of truth for Claude Code's Drupal knowledge, across machines.
+Remote: `git@gitlab.com:joehahn/claude-drupal-config.git` (private).
 
-Three skills live in `skills/`. They are **junctioned** into
-`C:\Users\joehahn\.claude\skills\` so every project on this machine can invoke
-them on demand — editing a file here edits the live skill.
+Three skills live in `skills/`. They are linked into `~/.claude/skills/` by the
+install script so every project on a machine can invoke them on demand —
+editing a file here edits the live skill.
+
+## Install on a machine
+
+```bash
+# Windows (PowerShell)
+git clone git@gitlab.com:joehahn/claude-drupal-config.git C:\dev\claude-drupal-config
+powershell -File C:\dev\claude-drupal-config\install.ps1
+
+# Linux / macOS / a fresh machine like deadpixel
+git clone git@gitlab.com:joehahn/claude-drupal-config.git ~/dev/claude-drupal-config
+~/dev/claude-drupal-config/install.sh
+
+# WSL on a machine that already has the Windows clone — reuse it, don't re-clone
+bash /mnt/c/dev/claude-drupal-config/install.sh
+```
+
+The installers are idempotent — re-run after any `git pull` (they also repoint
+links if the clone moved). They link the skills and insert/refresh a
+marker-managed "Drupal work" section in that environment's `~/.claude/CLAUDE.md`
+with the local clone path. Windows and WSL are **two separate Claude Code
+environments** — each needs its own install run, but on one machine they can
+share the single Windows clone.
+
+To pick up upstream edits made on another machine: `git pull` (links point into
+the clone, so nothing else to do).
 
 | Skill | Invoke when |
 |---|---|
@@ -38,12 +64,5 @@ file to re-verify. Everything else (standards, API patterns) is stable across ye
 
 Last verified: **2026-08-10**.
 
-## Install / reinstall the junctions
-
-```powershell
-cmd /c mklink /J "C:\Users\joehahn\.claude\skills\drupal-standards"        "C:\dev\claude-drupal-config\skills\drupal-standards"
-cmd /c mklink /J "C:\Users\joehahn\.claude\skills\drupal-modern-core"      "C:\dev\claude-drupal-config\skills\drupal-modern-core"
-cmd /c mklink /J "C:\Users\joehahn\.claude\skills\drupal-module-baselines" "C:\dev\claude-drupal-config\skills\drupal-module-baselines"
-```
-
-Junctions (`/J`), not symlinks (`/D`) — junctions don't need admin or Developer Mode.
+On Windows the script uses junctions (`mklink /J`), not symlinks — junctions
+don't need admin or Developer Mode. On Linux/WSL it uses plain symlinks.
