@@ -1,3 +1,6 @@
+# DELETE this includes: block if the project has phpstan/extension-installer —
+# drupal/core-dev pulls it in, and it registers both extensions itself. Listing
+# them here as well makes phpstan warn about double-included config and exit 1.
 includes:
   - vendor/mglaman/phpstan-drupal/extension.neon
   - vendor/phpstan/phpstan-deprecation-rules/rules.neon
@@ -7,6 +10,8 @@ parameters:
   # 2 = floor for new custom modules. 6 = well-maintained contrib.
   level: 2
 
+  # phpstan fails hard on a path that does not exist rather than skipping it, so
+  # on a fresh site create these directories (or drop the lines) before running.
   paths:
     - web/modules/custom
     - web/themes/custom
@@ -19,6 +24,8 @@ parameters:
       - */contrib/*
 
   # Where phpstan-drupal finds the site to bootstrap. Adjust to the docroot.
+  # DELETE this on phpstan-drupal 2.x — drupal_root is deprecated there and the
+  # docroot is discovered automatically.
   drupal:
     drupal_root: web
 
