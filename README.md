@@ -1,68 +1,72 @@
-# claude-drupal-config
+# Drupal skills for Claude Code
 
-Source of truth for Claude Code's Drupal knowledge, across machines.
-Remote: `git@gitlab.com:joehahn/claude-drupal-config.git` (private).
+Three [Claude Code skills](https://docs.claude.com/en/docs/claude-code/skills)
+that keep an AI coding agent writing Drupal the way drupal.org expects it
+written, plus the lint configs that make "done" mean "phpcs and phpstan pass".
 
-Three skills live in `skills/`. They are linked into `~/.claude/skills/` by the
-install script so every project on a machine can invoke them on demand —
-editing a file here edits the live skill.
-
-## Install on a machine
-
-```bash
-# Windows (PowerShell)
-git clone git@gitlab.com:joehahn/claude-drupal-config.git C:\dev\claude-drupal-config
-powershell -File C:\dev\claude-drupal-config\install.ps1
-
-# Linux / macOS / a fresh machine like deadpixel
-git clone git@gitlab.com:joehahn/claude-drupal-config.git ~/dev/claude-drupal-config
-~/dev/claude-drupal-config/install.sh
-
-# WSL on a machine that already has the Windows clone — reuse it, don't re-clone
-bash /mnt/c/dev/claude-drupal-config/install.sh
-```
-
-The installers are idempotent — re-run after any `git pull` (they also repoint
-links if the clone moved). They link the skills and insert/refresh a
-marker-managed "Drupal work" section in that environment's `~/.claude/CLAUDE.md`
-with the local clone path. Windows and WSL are **two separate Claude Code
-environments** — each needs its own install run, but on one machine they can
-share the single Windows clone.
-
-To pick up upstream edits made on another machine: `git pull` (links point into
-the clone, so nothing else to do).
+They exist because an agent left to its own devices writes 2019 Drupal:
+procedural hooks, annotation plugins, `\Drupal::service()` inside classes,
+`drupal/media` as a contrib dependency. These skills are the correction, kept
+in one repo so every machine and every project loads the same knowledge.
 
 | Skill | Invoke when |
 |---|---|
-| `drupal-standards` | Writing or reviewing any Drupal PHP/JS/CSS/Twig/YAML. Coding standards, docblocks, naming, drupal.org contribution rules. |
-| `drupal-modern-core` | Deciding *how* to implement something. Current core version status, OOP hooks, SDC, recipes, attribute plugins — the "don't write it the 2019 way" skill. |
-| `drupal-module-baselines` | Standing up a new site, or auditing an existing one's module list. Four site-type profiles. |
+| `drupal-standards` | Writing or reviewing any Drupal PHP, JS, CSS, Twig or YAML. Coding standards, docblocks, naming, accessibility, and the drupal.org contribution rules (issue forks, merge requests, semver, security coverage). |
+| `drupal-modern-core` | Deciding *how* to implement something. Current core version status, OOP `#[Hook]` classes, attribute plugins, SDC, recipes, config actions. The "don't write it the old way" skill. |
+| `drupal-module-baselines` | Standing up a new site or auditing an existing one's module list. Four site-type profiles (public hosted, static, private, Drupal CMS) and a rubric for judging whether a contrib module is safe to depend on. |
 
-`configs/` holds runnable, copy-in tooling: `phpcs.xml.dist`, `phpstan.neon.dist`,
-`rector.php`, plus `CLAUDE.md.template` for new Drupal repos. `drupal-standards`
-points at these.
+`configs/` holds copy-in tooling: `phpcs.xml.dist`, `phpstan.neon.dist`,
+`rector.php`, and a `CLAUDE.md.template` for new Drupal repos. `docs/` holds
+the two long-form research documents the skills were distilled from.
 
-## How enforcement works (three layers)
+## Install
 
-1. **Global CLAUDE.md** (`~\.claude\CLAUDE.md`, "Drupal work — any repo" section)
-   — always in context, tells every session to invoke the skills before Drupal
-   work and how to bootstrap a new project. This is the deterministic layer.
-2. **Skills** (junctioned globally) — the actual knowledge, loaded on demand.
-3. **Per-repo CLAUDE.md + lint configs** — from `configs\CLAUDE.md.template`;
-   pins the site profile and makes phpcs/phpstan runnable so "done" means
-   "checks pass", not "looks right".
+The installers link `skills/*` into `~/.claude/skills/` and insert a
+marker-managed "Drupal work" section into `~/.claude/CLAUDE.md` that tells
+every session to invoke the skills before Drupal work. They are idempotent:
+re-run after any `git pull`.
 
-New Drupal project checklist: copy the template in as `CLAUDE.md`, fill the
-placeholders (site type matters most — it selects the module baseline), copy the
-three lint configs, run the composer require-dev line from the template.
+```bash
+# Linux / macOS / WSL
+git clone https://github.com/joehahndev/drupal-claude-skills.git ~/dev/drupal-claude-skills
+~/dev/drupal-claude-skills/install.sh
+```
 
-## Refresh cadence
+```powershell
+# Windows (PowerShell)
+git clone https://github.com/joehahndev/drupal-claude-skills.git C:\dev\drupal-claude-skills
+powershell -File C:\dev\drupal-claude-skills\install.ps1
+```
 
-Drupal moves. Anything version-pinned in these skills is stamped with a date and
-lives in `skills/drupal-modern-core/references/version-status.md` — that's the one
-file to re-verify. Everything else (standards, API patterns) is stable across years.
+Windows and WSL are two separate Claude Code environments. Each needs its own
+install run, but on one machine they can share a single Windows clone: run
+`bash /mnt/c/dev/drupal-claude-skills/install.sh` from inside WSL. On Windows
+the installer uses directory junctions rather than symlinks, so it needs
+neither admin rights nor Developer Mode.
 
-Last verified: **2026-08-10**.
+## How enforcement works
 
-On Windows the script uses junctions (`mklink /J`), not symlinks — junctions
-don't need admin or Developer Mode. On Linux/WSL it uses plain symlinks.
+1. **Global `CLAUDE.md`** section (written by the installer): always in
+   context, tells every session to invoke the skills before Drupal work and
+   how to bootstrap a new project. The deterministic layer.
+2. **Skills**: the actual knowledge, loaded on demand.
+3. **Per-repo `CLAUDE.md` and lint configs** from `configs/`: pins the site
+   profile and makes phpcs and phpstan runnable, so the agent has to report
+   real tool output before claiming compliance.
+
+New Drupal project checklist: copy `configs/CLAUDE.md.template` in as
+`CLAUDE.md` and fill the placeholders (site type matters most, it selects the
+module baseline), copy the three lint configs, run the `composer require-dev`
+line from the template.
+
+## Keeping it current
+
+Drupal moves. Anything version-pinned is stamped with a date and lives in
+`skills/drupal-modern-core/references/version-status.md`. That is the one file
+to re-verify; the standards and API patterns are stable across years.
+
+Last verified against drupal.org: **2026-08-10**.
+
+## License
+
+MIT.
